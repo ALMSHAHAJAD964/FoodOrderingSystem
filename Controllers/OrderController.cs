@@ -1,5 +1,6 @@
 ﻿using FoodOrderingSystem.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 
 namespace FoodOrderingSystem.Controllers
@@ -101,7 +102,7 @@ namespace FoodOrderingSystem.Controllers
             ViewBag.Total = cart.Sum(c => c.Price * c.Quantity);
             return View(cart);
         }
-
+  
         [HttpGet]
         public IActionResult Checkout()
         {
@@ -138,6 +139,58 @@ namespace FoodOrderingSystem.Controllers
             HttpContext.Session.Remove("Cart");
             return RedirectToAction("OrderConfirmation", new { orderId = order.Id });
         }
+
+        public IActionResult OrderConfirmation(int orderId)
+        {
+            ViewBag.OrderId = orderId;
+            return View();
+        }
+
+        public IActionResult MyOrders(string status, string sortOrder, DateTime? fromDate, DateTime? endDate)
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (userId == null) return RedirectToAction("Login", "Account");
+            var orders = _context.Orders
+                .Include(o => o.OrderItems)
+                .ThenInclude(oi => oi.FoodItem)
+                .Where(o => o.UserId == userId).AsQueryable()
+                .OrderByDescending(o => o.OrderDate)
+                .ToList();
+            if (!string.IsNullOrEmpty(status) && status != "All")
+            {
+                orders = orders.Where(o => o.Status == status).ToList();
+                ViewBag.CurrentStatus = status;
+            }
+
+            if (fromDate.HasValue)
+            {
+                orders = orders.Where(o => o.OrderDate >= fromDate.Value).ToList();
+                ViewBag.FromDate = fromDate.Value.ToString("yyyy-MM-dd");
+            }
+
+            if(endDate.HasValue)
+            {
+                orders = orders.Where(o => o.OrderDate <= endDate.Value.AddDays(1)).ToList();
+                ViewBag.EndDate = endDate.Value.ToString("yyyy-MM-dd");
+            }
+
+            ViewBag.CurrentSort = sortOrder;
+            orders = sortOrder switch
+            {
+                "date_asc" => orders.OrderBy(o => o.OrderDate).ToList(),
+                "date_desc" => orders.OrderByDescending(o => o.OrderDate).ToList(),
+                "total_desc" => orders.OrderByDescending(o => o.TotalAmount).ToList(),
+                "total_asc" => orders.OrderBy(o => o.TotalAmount).ToList(),
+                _=> orders.OrderByDescending(o => o.OrderDate).ToList(),
+
+            };
+            ViewBag.StatusList = new List<string> { "All", "Pending", "Completed", "Preparing", "OutForDelivery", "Cancelled" };
+            return View(orders);
+
+
+        }
+
+
 
 
         // CartItem is NOT a database table

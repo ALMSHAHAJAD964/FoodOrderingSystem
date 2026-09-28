@@ -1,0 +1,237 @@
+﻿@model List<Order>
+@{
+    ViewData["Title"] = "My Orders";
+}
+<div class="container my-5">
+    <h2 class="mb-4">
+        <i class="bi bi-bag-check text-primary"></i>My Orders</h2>
+       @if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["Success"]
+
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="alert">
+        </button>
+    </div>
+}
+
+<div class="card shadow-sm mb-4">
+
+    <div class="card-body bg-light">
+
+        <form method="get"
+              asp-action="MyOrders" class="row g-3 align-items-end">
+
+            <div class="row g-3 align-items-end">
+
+                <!-- Status -->
+                <div class="col-md-3">
+
+                    <label class="form-label">
+                        <i class="bi bi-funnel"></i>
+                        Status
+                    </label>
+
+                    <select name="status"
+                            class="form-select">
+
+                        <option value="All">
+                            All Status
+                        </option>
+
+                        @foreach (var status in ViewBag.StatusList)
+                        {
+                            if (status != "All")
+                            {
+                                <option value="@status"
+                                        selected="@(ViewBag.CurrentStatus == status)">
+                                    @status
+                                </option>
+                            }
+                        }
+
+                    </select>
+
+                </div>
+
+
+                <!-- From Date -->
+                <div class="col-md-2">
+
+                    <label class="form-label">
+                        From Date
+                    </label>
+
+                    <input type="date"
+                           name="fromDate"
+                           class="form-control"
+                           value="@ViewBag.FromDate" />
+
+                </div>
+
+
+                <!-- To Date -->
+                <div class="col-md-2">
+
+                    <label class="form-label">
+                        To Date
+                    </label>
+
+                    <input type="date"
+                           name="toDate"
+                           class="form-control"
+                           value="@ViewBag.ToDate" />
+
+                </div>
+
+
+                <!-- Sort By -->
+                <div class="col-md-3">
+
+                    <label class="form-label">
+                        <i class="bi bi-sort-down"></i>
+                        Sort By
+                    </label>
+
+                    <select name="sortOrder"
+                            class="form-select">
+
+                        <option value="date_desc"
+                                selected="@(ViewBag.CurrentSort == "date_desc")">
+                            Newest First
+                        </option>
+
+                        <option value="date_asc"
+                                selected="@(ViewBag.CurrentSort == "date_asc")">
+                            Oldest First
+                        </option>
+
+                        <option value="total_desc"
+                                selected="@(ViewBag.CurrentSort == "total_desc")">
+                            Highest Amount
+                        </option>
+
+                        <option value="total_asc"
+                                selected="@(ViewBag.CurrentSort == "total_asc")">
+                            Lowest Amount
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- Filter Button -->
+                <div class="col-md-2">
+
+                    <button type="submit"
+                            class="btn btn-primary w-100">
+
+                        <i class="bi bi-funnel"></i>
+                        Filter
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </form>
+
+
+        <!-- Clear Filters -->
+        @if (!string.IsNullOrEmpty(ViewBag.CurrentStatus)
+            || !string.IsNullOrEmpty(ViewBag.FromDate)
+            || !string.IsNullOrEmpty(ViewBag.ToDate))
+        {
+            <div class="mt-2">
+
+              <a href="/Order/MyOrders" class="btn btn-outline-secondary">
+              <i class="bi bi-x-circle">Clear Filters</i>    
+              </a>
+
+            </div>
+        }
+
+    </div>
+
+</div>
+
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> You have no orders yet.
+            <a href="/Menu" class="alert-link">Browse our Menu</a>to place your first order.
+        </div>
+    }
+    else
+    {
+        <div class="row">
+
+            @foreach (var order in Model)
+            {
+                <div class="col-md-6 mb-4">
+
+                    <div class="card shadow h-100">
+
+                        <div class="card-header d-flex justify-content-between align-content-center">
+                            <span><strong>Order #@order.Id</strong></span>
+                            @{
+                                var badgeClass = order.Status switch
+                                {
+                                    "Pending" => "bg-warning text-dark",
+                                    "Confirmed" => "bg-info",
+                                    "Preparing" => "bg-primary",
+                                    "OutForDelivery" => "bg-secondary",
+                                    "Delivered" => "bg-success",
+                                     "Cancelled" => "bg-danger",
+                                    _ => "bg-light text-dark"
+                                };
+                            }
+                            <span class="badge @badgeClass">@order.Status</span>
+                        </div>
+                        <div class="card-body">
+                           <div class="row mb-3">
+                               <div class="col-6">
+                                    <small class="text-muted">Order Date:</small>
+                                    <p class="mb-0">@order.OrderDate.ToString("MMM dd, yyyy")</p>
+                                    <small>@order.OrderDate.ToString("HH:mm")</small>
+                               </div>
+                               <div class="col-6 text-end">
+                                    <small class="text-muted">Total Amount:</small>
+                                    <p class="h5 mb-0 text-primary">$@order.TotalAmount.ToString("F2")</p>
+                               </div>
+                           </div>
+                           <hr />
+                           <div class="mb-3">
+                                <small class="text-muted">Items(@order.OrderItems.Count)</small>
+                                <ul class="list-group list-group-flush">
+                                    @foreach (var item in order.OrderItems.Take(3))
+                                    {
+                                        <li class="list-group-item d-flex justify-content-between align-items- px-0">
+                                           <span>@item.FoodItem?.Name x @item.Quantity</span>
+                                           <span class="text-muted">$@((item.Quantity * item.FoodItem?.Price)?.ToString("F2"))</span>
+                                           
+                                        </li>
+                                    }
+                                    @if(order.OrderItems.Count > 3)
+                                    {
+                                        <li class="list-group-item text-center text-muted">
+                                            +@((order.OrderItems.Count) - 3) more items
+                                        </li>
+                                    }
+        
+                           </div>
+                        </div>
+
+                    </div>
+
+                </div>
+            }
+
+        </div>
+    }
+</div>
