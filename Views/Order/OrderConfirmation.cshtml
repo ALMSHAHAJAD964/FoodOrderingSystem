@@ -1,0 +1,45 @@
+﻿@{
+    ViewData["Title"] = "Order Confirmation";
+}
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+
+            <div class="card shadow p-5">
+
+                <div class="mb-4">
+                    <i class="bi bi-check-circle-fill text-success"
+                       style="font-size: 80px;"></i>
+                </div>
+                <h2 class="text-success mb-3"> Order Confirmed!</h2>
+                <p class="lead">Thank you for your order.</p>
+
+                <p class="text-muted">
+                    Your order has been placed successfully.
+                    We will start preparing your order soon.
+                </p>
+
+                <div class="d-flex justify-content-center gap-2 mt-4">
+
+                    <a asp-controller="Order"
+                       asp-action="MyOrders"
+                       class="btn btn-primary">
+                        <i class="bi bi-bag-check"></i>
+                        My Orders
+                    </a>
+
+                    <a asp-controller="Menu"
+                       asp-action="Index"
+                       class="btn btn-outline-secondary">
+                        <i class="bi bi-shop"></i>
+                        Continue Shopping
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
