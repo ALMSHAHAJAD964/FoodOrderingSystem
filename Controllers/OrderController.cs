@@ -191,7 +191,35 @@ namespace FoodOrderingSystem.Controllers
         }
 
 
+        public IActionResult TrackOrder(int id)
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (userId == null) return RedirectToAction("Login", "Account");
+            var order = _context.Orders
+                .Include(o => o.OrderItems)
+                .ThenInclude(oi => oi.FoodItem)
+                .FirstOrDefault(o => o.Id == id && o.UserId == userId);
+            if (order == null) return NotFound();
+            return View(order);
+        }
 
+        [HttpPost]
+        public IActionResult CancelOrder(int orderId)
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (userId == null) return RedirectToAction("Login", "Account");
+            var order = _context.Orders.FirstOrDefault(o => o.Id == orderId && o.UserId == userId);
+            if (order == null) return NotFound();
+            if (order.Status == "Pending" && order.Status == "Confirmed")
+            {
+               TempData["ErrorMessage"] = "You cannot cancel this order.";
+                return RedirectToAction("TrackOrder", new {id = orderId });
+            }
+            order.Status = "Cancelled";
+            _context.SaveChanges();
+            TempData["SuccessMessage"] = "Order cancelled successfully.";
+            return RedirectToAction("MyOrders");
+        }
 
         // CartItem is NOT a database table
         public class CartItem
