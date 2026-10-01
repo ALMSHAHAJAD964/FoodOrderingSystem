@@ -152,6 +152,48 @@ namespace FoodOrderingSystem.Controllers
             return RedirectToAction("ManageMenu");
         }
 
+        [HttpGet]
+        public IActionResult EditFoodItem( int id)
+        {
+            if (!IsAdmin())
+            {
+                return RedirectToAction("Index", "Home");
+            }
+            var item = _context.FoodItems.Find(id);
+            if(item == null)
+            {
+                return NotFound();
+            }
+            ViewBag.Categories = _context.Categories.ToList();
+            return View(item);
+        }
 
+        [HttpPost]
+        public IActionResult EditFoodItem([Bind("Id,Name,Description,Price,CategoryId,ImageUrl,IsAvailable")] FoodItem item)
+        {
+            if (!IsAdmin())
+            {
+                return RedirectToAction("Index", "Home");
+            }
+            if (ModelState.IsValid)
+            {
+                var existingItem = _context.FoodItems.Find(item.Id);
+                if(existingItem == null)
+                {
+                    return NotFound();
+                }
+                existingItem.Name = item.Name;
+                existingItem.Description = item.Description;
+                existingItem.Price = item.Price;
+                existingItem.CategoryId = item.CategoryId;
+                existingItem.ImageUrl = item.ImageUrl;
+                existingItem.IsAvailable = item.IsAvailable;
+                _context.SaveChanges();
+                TempData["Success"] =$"{item.Name} has been updated successfully";
+                return RedirectToAction("ManageMenu");
+            }
+            ViewBag.Categories = _context.Categories.ToList();
+            return View(item) ;
+        }
     }
 }

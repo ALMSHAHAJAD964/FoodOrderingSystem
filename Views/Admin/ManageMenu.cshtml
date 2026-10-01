@@ -294,12 +294,17 @@
                                         }
                                     </td>
                                             <td>
+                                                <div class="btn-group" role="group">
+                                                    <a href="/Admin/EditFoodItem/@item.Id" class="btn btn-warning" title="Edit">
+                                                      <i class="bi bi-pencil"></i>    
+                                                    </a>
                                                 <form asp-action="ToggleAvailability" method="post" class="d-inline"
                                                 title="@(item.IsAvailable ? "Make Unavailable" : "Make Available")">
                                                 <input type="hidden" name="id" value="@item.Id"/>
                                                 <button type="submit" class="btn btn-sm" @(item.IsAvailable ? "btn-secondary" : "btn-success")>
                                                     <i class="bi @(item.IsAvailable ? "bi-eye-slash" : "bi-eye")"></i>
                                                 </button>
+                                               
                                                 </form>
                                                 <form asp-controller="Admin"
                                                  asp-action="Delete"
@@ -313,9 +318,10 @@
                                                    <i class="bi bi-trash"></i>
                                                    Delete
                                                </button>
+
                                                </form>
                                   
-                                    
+                                     </div>
                                               </td>
                             </tr>
                         }
