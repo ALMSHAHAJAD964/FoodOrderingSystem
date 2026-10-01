@@ -93,5 +93,22 @@ namespace FoodOrderingSystem.Controllers
             ViewBag.Categories = _context.Categories.ToList();
             return View(items.ToList());
         }
+        [HttpPost]
+        public IActionResult ToggleAvailability(int id)
+        {
+            if (!IsAdmin())
+            {
+                return RedirectToAction("Index", "Home");
+            }
+            var item = _context.FoodItems.Find(id);
+            if(item == null)
+            {
+                return NotFound();
+            }
+            item.IsAvailable =!item.IsAvailable;
+            _context.SaveChanges();
+            TempData["Success"] = $"{item.Name} is now {(item.IsAvailable ? "available" : "unavailable")}";
+            return RedirectToAction("ManageMenu");
+        }
     }
 }
