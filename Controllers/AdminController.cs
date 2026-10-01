@@ -44,7 +44,7 @@ namespace FoodOrderingSystem.Controllers
 
             var items = _context.FoodItems.Include(f => f.Category).AsQueryable();
 
-            if(categoryId.HasValue && categoryId > 0)
+            if (categoryId.HasValue && categoryId > 0)
             {
                 items = items.Where(f => f.CategoryId == categoryId.Value);
                 ViewBag.CurrentCategory = categoryId;
@@ -52,7 +52,7 @@ namespace FoodOrderingSystem.Controllers
 
             if (!string.IsNullOrEmpty(searchString))
             {
-                items = items.Where(f => f.Name.Contains(searchString)  || f.Description.Contains(searchString));
+                items = items.Where(f => f.Name.Contains(searchString) || f.Description.Contains(searchString));
                 ViewBag.CurrentSearch = searchString;
             }
 
@@ -75,7 +75,7 @@ namespace FoodOrderingSystem.Controllers
                 ViewBag.CurrentMaxPrice = maxPrice;
             }
 
-           items = sortOrder switch
+            items = sortOrder switch
             {
                 "name_desc" => items.OrderByDescending(f => f.Name),
                 "name_asc" => items.OrderBy(f => f.Name),
@@ -83,7 +83,7 @@ namespace FoodOrderingSystem.Controllers
                 "price_asc" => items.OrderBy(f => f.Price),
                 "category" => items.OrderBy(f => f.Category.Name),
                 "category_desc" => items.OrderByDescending(f => f.Category.Name),
-                _ => items.OrderBy(f => f.CategoryId).ThenBy(f=>f.Name),
+                _ => items.OrderBy(f => f.CategoryId).ThenBy(f => f.Name),
             };
 
             ViewBag.TotalItems = _context.FoodItems.Count();
@@ -101,14 +101,57 @@ namespace FoodOrderingSystem.Controllers
                 return RedirectToAction("Index", "Home");
             }
             var item = _context.FoodItems.Find(id);
-            if(item == null)
+            if (item == null)
             {
                 return NotFound();
             }
-            item.IsAvailable =!item.IsAvailable;
+            item.IsAvailable = !item.IsAvailable;
             _context.SaveChanges();
             TempData["Success"] = $"{item.Name} is now {(item.IsAvailable ? "available" : "unavailable")}";
             return RedirectToAction("ManageMenu");
         }
+
+        [HttpPost]
+        public IActionResult Delete(int id)
+        {
+            if (!IsAdmin())
+            {
+                return RedirectToAction("Index", "Home");
+            }
+            var item = _context.FoodItems.Find(id);
+            if (item == null)
+            {
+                return NotFound();
+            }
+            _context.FoodItems.Remove(item);
+            _context.SaveChanges();
+            TempData["Success"] = $"{item.Name} has been deleted";
+            return RedirectToAction("ManageMenu");
+        }
+
+        [HttpGet]
+        public IActionResult AddFoodItem()
+        {
+            if (!IsAdmin())
+            {
+                return RedirectToAction("Index", "Home");
+            }
+            ViewBag.Categories = _context.Categories.ToList();
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult AddFoodItem(FoodItem item)
+        {
+            if (!IsAdmin())
+            {
+                return RedirectToAction("Index", "Home");
+            }
+            _context.FoodItems.Add(item);
+            _context.SaveChanges();
+            return RedirectToAction("ManageMenu");
+        }
+
+
     }
 }

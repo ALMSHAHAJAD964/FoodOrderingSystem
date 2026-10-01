@@ -204,6 +204,12 @@
                                 </a>  
                         }
                     </div>
+                                <div class="col-md-6 text-end">
+                                    <a href="/Admin/AddFoodItem" class="btn btn-success">
+                                      <i class="bi bi-plus-circle"></i>   Add new Item 
+                                    </a>
+
+                                </div>
                 </div>
             </div>
         </div>
@@ -295,11 +301,22 @@
                                                     <i class="bi @(item.IsAvailable ? "bi-eye-slash" : "bi-eye")"></i>
                                                 </button>
                                                 </form>
-                                                <button type="button" class="btn btn-sm btn-danger">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
+                                                <form asp-controller="Admin"
+                                                 asp-action="Delete"
+                                                 method="post"
+                                                 class="d-inline">
+                                               
+                                               <input type="hidden" name="id" value="@item.Id" />
+                                               
+                                               <button type="submit" class="btn btn-sm btn-danger"
+                                                       onclick="return confirm('Are you sure you want to delete this item?');">
+                                                   <i class="bi bi-trash"></i>
+                                                   Delete
+                                               </button>
+                                               </form>
+                                  
                                     
-                               </td>
+                                              </td>
                             </tr>
                         }
                     </tbody>
